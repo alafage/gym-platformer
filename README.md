@@ -13,11 +13,14 @@ cd gym-platformer
 pip install -e .
 ```
 
-Then you can import the environment into a python file:
+Then you can import the environments into a python file:
 
 ```python
 import gym
 import gym_platformer
 
-env = gym.make('platformer-v0')
+# Continous platformer environment
+continuous_env = gym.make('platformer-v0')
+# Discrete platformer environment
+discrete_env = gym.make('discrete-platformer-v0')
 ```

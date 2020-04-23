@@ -28,8 +28,8 @@ class PlatformerEnv(gym.Env):
     --------
         Type: Discrete(2)
         Num     Action
-        0       Move player to the left
-        1       Move player to the right
+        0       Move player to the right
+        1       Move player to the left
 
     Reward:
     -------
