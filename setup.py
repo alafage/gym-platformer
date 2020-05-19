@@ -4,7 +4,7 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setup(
-    name='gym_platformer',
+    name='gymplatformer',
     version='1.0',
     author='Aydens01',
     author_email='adrienlafage36@gmail.com',
