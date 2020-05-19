@@ -1,4 +1,4 @@
-# gym-platformer
+# GymPlatformer
 
 The Platformer environment is a single agent domain featuring continuous state and action spaces.
 
@@ -9,7 +9,7 @@ Adaptation of the [simple-platformer](https://github.com/maxenceblanc/simple-pla
 ## Installation
 
 ```sh
-cd gym-platformer
+cd GymPlatformer
 pip install -e .
 ```
 
@@ -17,7 +17,7 @@ Then you can import the environments into a python file:
 
 ```python
 import gym
-import gym_platformer
+import gymplatformer
 
 # Continous platformer environment
 continuous_env = gym.make('platformer-v0')

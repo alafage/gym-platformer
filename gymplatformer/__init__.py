@@ -2,10 +2,10 @@ from gym.envs.registration import register
 
 register(
     id='platformer-v0',
-    entry_point='gym_platformer.envs:PlatformerEnv',
+    entry_point='gymplatformer.envs:PlatformerEnv',
 )
 
 register(
     id='discrete-platformer-v0',
-    entry_point='gym_platformer.envs:DiscretePlatformerEnv'
+    entry_point='gymplatformer.envs:DiscretePlatformerEnv'
 )

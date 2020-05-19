@@ -1,0 +1,2 @@
+from gymplatformer.envs.platformer_env import PlatformerEnv
+from gymplatformer.envs.discrete_platformer_env import DiscretePlatformerEnv
