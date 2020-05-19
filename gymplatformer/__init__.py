@@ -1,11 +1,12 @@
-from gym.envs.registration import register
+from gym import make as gym_make
 
-register(
-    id='platformer-v0',
-    entry_point='GymPlatformer.envs:PlatformerEnv',
-)
+from envs.discrete_platformer_env import DiscretePlatformerEnv
+from envs.platformer_env import PlatformerEnv
 
-register(
-    id='discrete-platformer-v0',
-    entry_point='GymPlatformer.envs:DiscretePlatformerEnv'
-)
+def make(env_name, *make_args, **make_kwargs):
+    if env_name == "PlatformerEnv":
+        return(PlatformerEnv())
+    elif env_name == "DiscretePlatformerEnv":
+        return(DiscretePlatformerEnv())
+    else:
+        return(gym_make(env_name, *make_args, **make_kwargs))

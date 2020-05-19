@@ -9,18 +9,14 @@ Adaptation of the [simple-platformer](https://github.com/maxenceblanc/simple-pla
 ## Installation
 
 ```sh
-cd GymPlatformer
-pip install -e .
+pip install git+https://github.com/Aydens01/GymPlatformer.git
 ```
 
-Then you can import the environments into a python file:
+Then you can import the environments into a python file by doing:
 
 ```python
-import gym
-import gymplatformer
+from gymplatformer import make
 
-# Continous platformer environment
-continuous_env = gym.make('platformer-v0')
-# Discrete platformer environment
-discrete_env = gym.make('discrete-platformer-v0')
+discrete_env  = make("DiscretePlatformerEnv")
+continous_env = make("PlatformerEnv")
 ```
