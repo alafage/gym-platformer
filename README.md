@@ -8,6 +8,8 @@ Adaptation of the [simple-platformer](https://github.com/maxenceblanc/simple-pla
 
 ## Installation
 
+Either copy the files containing the environments to your own code folder while paying attention to the dependencies, or install the repository with the following command:
+
 ```sh
 pip install git+https://github.com/Aydens01/GymPlatformer.git
 ```
