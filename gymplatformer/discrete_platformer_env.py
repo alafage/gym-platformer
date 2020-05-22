@@ -62,7 +62,7 @@ class DiscretePlatformerEnv(gym.Env):
         self.block_height = 10*self.proportion
 
         # For the display
-        self.visibility_x = 21  # width of viewer in amount of blocks. 
+        self.visibility_x = 42  # width of viewer in amount of blocks. 
         self.visibility_y = 2   # height of viewer in amount of map height.
 
         # Initializes map
@@ -92,8 +92,11 @@ class DiscretePlatformerEnv(gym.Env):
         self.blue   = (57,155,216)
 
         # Block initialisation
-        self.block = namedtuple('Block',('x','y','width','height','color'))
+        self.block = namedtuple('Block',('rect','color'))
         self.block_list = []
+
+        # Player initialization
+        self.player = None
 
         # Action space
         self.action_space = spaces.Discrete(2)
@@ -111,85 +114,20 @@ class DiscretePlatformerEnv(gym.Env):
 
         self.observation_space = spaces.Box(low, high, dtype=np.float32)
 
+        # Phisics
+        self.speed_x = 2*self.proportion
+
         self.seed()
         self.viewer = None
         self.state = None
-
-
-    def initWorld(self):
-        """ Initializes the map list
-        """
-        self.map = [
-            " "*self.visibility_x,
-            " "*self.visibility_x,
-            " "*self.visibility_x,
-            " "*self.visibility_x,
-            " "*self.visibility_x,
-            " "*self.visibility_x,
-            " "*self.visibility_x,
-            " "*self.visibility_x,
-            " "*self.visibility_x,
-            "W"*self.visibility_x
-        ]
+    
+    #### GYM ENVIRONMENT FUNCTIONS
 
     def seed(self, seed=None):
         """ TODO
         """
         self.np_random, seed = seeding.np_random(seed)
         return([seed])
-
-    def move(self, action):
-        """ Updates the player position according to the given action
-        """
-        # Check whether the action is valid or not
-        assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
-        # Gets player position on x-axis
-        player_position_x = self.state[0]
-        # Updates player position on x-axis
-        if action == 0:
-            player_position_x += 10*self.proportion
-        elif action == 1:
-            player_position_x -= 10*self.proportion
-        
-        return(player_position_x)
-    
-    def success(self, player_position_x):
-        """ Checks if the requirements are solved
-        """
-        return(True if player_position_x==self.state[1] else False)
-
-    def setEnd(self, end_position_x):
-        """ Sets end point position on x-axis
-        """
-        # Resets map
-        self.initWorld()
-        # Computes end point index in the map list
-        end_index = int(end_position_x // 10)
-        # Puts end point on map
-        self.map[-1]=self.map[-1][:end_index]+'E'+self.map[-1][end_index+1:]
-
-    def updateState(self, **kwargs):
-        """ Updates environment state
-
-        Parameters:
-            **kwargs: {
-                'player_x_pos': player position on x-axis,
-                'end_x_pos': end point position on x-axis
-            }
-        """
-        for key, value in kwargs.items():
-            try:
-                if key == 'player_x_pos':
-                    self.state[0] = int(value)
-                elif key == 'end_x_pos':
-                    self.setEnd(value)
-                    self.state[2] = int(value)
-                else:
-                    raise Exception("Invalid keyword argument: %s."%(key))
-            
-            except:
-                raise Exception("Invalid value type: {} ({}), only integer \
-                and float numbers are accepted.".format(value, type(value)))
 
     def step(self, action, time=0, time_max=50):
         """ Updates the environment state
@@ -200,30 +138,31 @@ class DiscretePlatformerEnv(gym.Env):
             time_max: maximal duration of the episode.
         """
         # Updates player_position_x
-        player_position_x = self.move(action)
+        self.movePlayer(action)
+
         # Cheks whether the episode is terminated or not
-        done = not self.observation_space.contains([player_position_x, self.state[1]]) \
-               or self.success(player_position_x) \
+        done = not self.observation_space.contains([self.player.rect.left, self.state[1]]) \
+               or self.success() \
                or time >= time_max
         
         # Sets the reward for the transition
         if done:
-            if self.success(player_position_x):
+            if self.success():
                 reward = 10.0
-            elif not self.observation_space.contains([player_position_x, self.state[1]]):
+            elif not self.observation_space.contains([self.player.rect.left, self.state[1]]):
                 reward = -10.0
             else:
                 reward = 0.0
-        elif abs(self.state[0]-self.state[1])>abs(player_position_x-self.state[1]):
+        elif abs(self.state[0]-self.state[1])>abs(self.player.rect.left-self.state[1]):
             reward = 1.0
         else:
             reward = -2.0
         
         # Updates the environment state
-        self.state[0] = player_position_x
+        self.state[0] = self.player.rect.left
 
         return(self.state, reward, done, {})
-    
+
     def reset(self, player_position_x=None, end_position_x=None):
         """ Resets the state of the environment
         """
@@ -241,31 +180,14 @@ class DiscretePlatformerEnv(gym.Env):
         self.setEnd(end_position_x)
         # Updates environment state
         self.state = np.array([player_position_x, end_position_x])
-        # Store the first position of the player
+        # Stores the first position of the player
         self.start_x = player_position_x
         self.start_y = self.size_y-self.block_height-self.player_height
+        # Updates player
+        self.player = self.block(pygame.Rect(self.start_x, self.start_y, self.block_width, self.block_height*2), self.blue)
+        # Updates self.block_list
+        self.levelGeneration()
         return(self.state)
-    
-    def levelGeneration(self):
-        """ Generates the level block list.
-
-        Code:
-            End point is purple, otherwise blocks are white.
-        """
-
-        x, y = 0, (self.visibility_y-1)*self.map_height*self.block_height
-
-        for column in range(self.map_width):
-            for row in range(self.map_height):
-                if self.map[row][column] == "W":
-                    self.block_list.append(self.block(x,y,self.block_width, self.block_height,self.white))
-                elif self.map[row][column]=="E":
-                    self.block_list.append(self.block(x,y,self.block_width, self.block_height,self.purple))
-                
-                y += self.block_height
-
-            x += self.block_width
-            y = (self.visibility_y-1)*self.map_height*self.block_height
 
     def render(self, mode='human'):
         """ Generates the environment graphical view.
@@ -276,16 +198,13 @@ class DiscretePlatformerEnv(gym.Env):
         """
         # Creates the window
         self.viewer = pygame.Surface((self.size_x, self.size_y)) # Dimensions of WINDOW
-        # Updates self.block_list
-        self.levelGeneration()
         # Draws the background
         self.viewer.fill(self.grey)
         # Draws each block
         for block in self.block_list:
-            pygame.draw.rect(self.viewer, block.color, pygame.Rect(block.x, block.y, block.width, block.height))
+            pygame.draw.rect(self.viewer, block.color, block.rect)
         # Draws the player
-        player = self.block(self.state[0], self.start_y, self.player_width, self.player_height, self.blue)
-        pygame.draw.rect(self.viewer, player.color, pygame.Rect(player.x, player.y, player.width, player.height))
+        pygame.draw.rect(self.viewer, self.player.color, self.player.rect)
         
         if mode=='human':
             screen = pygame.display.set_mode((self.size_x, self.size_y))
@@ -305,11 +224,127 @@ class DiscretePlatformerEnv(gym.Env):
         """
         pygame.quit()
 
+    #### CUSTOM FUNCTIONS
+
+    def initWorld(self):
+        """ Initializes the map list
+        """
+        # self.map = [
+        #     " "*self.visibility_x,
+        #     " "*self.visibility_x,
+        #     " "*self.visibility_x,
+        #     " "*self.visibility_x,
+        #     " "*self.visibility_x,
+        #     " "*self.visibility_x,
+        #     " "*self.visibility_x,
+        #     " "*self.visibility_x,
+        #     " "*self.visibility_x,
+        #     "W"*self.visibility_x
+        # ]
+        self.map = [
+            "______________________________",
+            "______________________________",
+            "______________________________",
+            "______________________________",
+            "______________________________",
+            "______________________________",
+            "_______________W______________",
+            "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+        ]
+
+    def collisions(self, x_direction):
+        """ Handling of collisions when moving the player.
+        """
+        for block in self.block_list:
+            if self.player.rect.colliderect(block.rect):
+                if x_direction=='left':
+                    self.player.rect.right=block.rect.left
+                elif x_direction=='right':
+                    self.player.rect.left=block.rect.right
+
+    def movePlayer(self, action):
+        """ Updates the player position according to the given action
+        """
+        # Check whether the action is valid or not
+        assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
+        # Updates player position on x-axis
+        x_direction = None
+        if action == 0:
+            self.player.rect.left += self.speed_x
+            x_direction = 'left'
+        elif action == 1:
+            self.player.rect.left -= self.speed_x
+            x_direction = 'right'
+
+        # TODO: Collision handling
+        self.collisions(x_direction)
+
+    def success(self):
+        """ Checks if the requirements are solved
+        """
+        return(True if self.player.rect.left==self.state[1] else False)
+
+    def setEnd(self, end_position_x):
+        """ Sets end point position on x-axis
+        """
+        # Resets map
+        self.initWorld()
+        # Computes end point index in the map list
+        end_index = int(end_position_x // 10)
+        # Puts end point on map
+        self.map[-1]=self.map[-1][:end_index]+'E'+self.map[-1][end_index+1:]
+
+    def updateState(self, **kwargs):
+        """ Updates environment state FIXME: usefull ?
+
+        Parameters:
+            **kwargs: {
+                'player_x_pos': player position on x-axis,
+                'end_x_pos': end point position on x-axis
+            }
+        """
+        for key, value in kwargs.items():
+            try:
+                if key == 'player_x_pos':
+                    # TODO: checking value
+                    self.state[0] = int(value)
+                elif key == 'end_x_pos':
+                    # TODO: checking value
+                    self.setEnd(value)
+                    self.state[1] = int(value)
+                else:
+                    raise Exception("Invalid keyword argument: %s."%(key))
+            
+            except:
+                raise Exception("Invalid value type: {} ({}), only integer \
+                and float numbers are accepted.".format(value, type(value)))
+    
+    def levelGeneration(self):
+        """ Generates the level block list.
+
+        Code:
+            End point is purple, otherwise blocks are white.
+        """
+
+        x, y = 0, (self.visibility_y-1)*self.map_height*self.block_height
+
+        for column in range(self.map_width):
+            for row in range(self.map_height):
+                if self.map[row][column] == "W":
+                    self.block_list.append(self.block(pygame.Rect(x,y,self.block_width, self.block_height),self.white))
+                elif self.map[row][column]=="E":
+                    self.block_list.append(self.block(pygame.Rect(x,y,self.block_width, self.block_height),self.purple))
+                
+                y += self.block_height
+
+            x += self.block_width
+            y = (self.visibility_y-1)*self.map_height*self.block_height
+
 
 if __name__=="__main__":
     
     # EXAMPLE
-    env = DiscretePlatformerEnv()
+    env = DiscretePlatformerEnv()    
     clock = pygame.time.Clock()
 
     print('Starting 10 episodes...')
