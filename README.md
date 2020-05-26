@@ -17,6 +17,5 @@ Then you can import the environments into a python file by doing:
 ```python
 from gymplatformer import make
 
-discrete_env  = make("DiscretePlatformerEnv")
 continous_env = make("PlatformerEnv")
 ```
