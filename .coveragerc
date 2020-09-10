@@ -1,0 +1,18 @@
+[run]
+branch = True
+include = */gymplatformer/*
+omit = *test*,
+
+[report]
+exclude_lines =
+    coverage: ignore
+    raise NotImplementedError
+    if TYPE_CHECKING:
+    def __repr__
+    def _repr_html_
+    def _repr_svg_
+    def __str__
+    def _info_html
+    def _ipython_key_completions_
+
+ignore_errors = True
