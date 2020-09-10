@@ -1,0 +1,8 @@
+{
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.linting.enabled": true,
+    "python.formatting.provider": "black",
+    "python.pythonPath": "/home/eisti/anaconda3/envs/rf_env/bin/python"
+}
