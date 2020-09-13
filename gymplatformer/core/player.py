@@ -28,11 +28,11 @@ class Player:
         """ Slows the player down.
         """
 
-        if 1 > self.x_speed / self.cfg.SLOWDOWN__X > -1:
+        if 1 > self.x_speed * self.cfg.SLOWDOWN_X > -1:
             self.x_speed = 0.0
 
         else:
-            self.x_speed = float(int(self.x_speed / self.cfg.SLOWDOWN__X))
+            self.x_speed = self.x_speed * self.cfg.SLOWDOWN_X
 
     def collisions(
         self, x_speed: float, y_speed: float, blocks: List[Block]
@@ -111,13 +111,13 @@ class Player:
             self.y_speed += self.cfg.ACCELERATION_Y
 
         if action in [2, 3, 4] and self.ground(blocks):
-            self.y_speed -= self.cfg.SPEED_Y
+            self.y_speed -= float(self.cfg.SPEED_Y)
 
         # x speed limit
         if self.x_speed < -self.cfg.SPEED_X:
-            self.x_speed = -self.cfg.SPEED_X
+            self.x_speed = float(-self.cfg.SPEED_X)
         elif self.x_speed > self.cfg.SPEED_X:
-            self.x_speed = self.cfg.SPEED_X
+            self.x_speed = float(self.cfg.SPEED_X)
 
     def update_coor(self, blocks: List[Block]) -> None:
         """ Moves the player

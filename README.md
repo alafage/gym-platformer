@@ -3,8 +3,6 @@
 [![Build Status](https://travis-ci.com/alafage/gym-platformer.svg?branch=master)](https://travis-ci.com/alafage/gym-platformer)
 [![codecov](https://codecov.io/gh/alafage/gym-platformer/branch/master/graph/badge.svg)](https://codecov.io/gh/alafage/gym-platformer)
 
-
-
 The Platformer environment is a single agent domain featuring continuous state and action spaces.
 
 ## Source

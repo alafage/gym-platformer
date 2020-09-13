@@ -1,5 +1,5 @@
 import random
-from typing import List
+from typing import List, Union
 
 from .block import Block
 from .chunks import chunks
@@ -33,11 +33,32 @@ class Map:
         self.level_idx: int = 1
         self.NB_CHUNK = len(self.level)
 
-    def load_chunk(self, key: str, x_start: int) -> None:
+    def valid_chunk(self, chunk: List[str]) -> bool:
+        if len(chunk) == self.cfg.CHUNK_HEIGHT:
+            for i in range(1, len(chunk)):
+                if len(chunk[0]) != len(chunk[i]):
+                    return False
+            return True
+        else:
+            return False
+
+    def load_chunk(
+        self, identifier: Union[str, List[str]], x_start: int
+    ) -> None:
         """ TODO
         """
-        # gets the chunk
-        chunk = chunks[key]
+        if isinstance(identifier, str):
+            # gets the chunk
+            chunk = chunks[identifier]
+        elif isinstance(identifier, list):
+            if self.valid_chunk(identifier):
+                chunk = identifier
+            else:
+                raise ValueError(
+                    "given chunk is invalid."
+                    f"The rules are: len(chunk)=={self.cfg.CHUNK_HEIGHT} "
+                    f"and the items in the chunk must have th same lenght."
+                )
         # sets the x coordinate for the generation.
         x, y = (
             x_start,

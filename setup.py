@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="gymplatformer",
-    version="0.0",
+    version="1.0",
     author="Adrien Lafage",
     author_email="adrienlafage@outlook.com",
     description="Platformer environment package",

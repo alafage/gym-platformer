@@ -8,7 +8,7 @@ class Configuration:
     """ TODO
     """
 
-    def __init__(self) -> None:
+    def __init__(self, proportion: float = 1.0, chunk_height: int = 16) -> None:
 
         # APP CONFIGURATION
 
@@ -23,12 +23,12 @@ class Configuration:
         # GAME CONFIGURATION
 
         # coefficient of Proportions (to increase physics proportionally)
-        self.PROPORTION = 1.0
+        self.PROPORTION = proportion
         # size of blocks
         self.BLOCK_WIDTH = int(16 * self.PROPORTION)
         self.BLOCK_HEIGHT = int(16 * self.PROPORTION)
         # size of chunk
-        self.CHUNK_HEIGHT = 16
+        self.CHUNK_HEIGHT = chunk_height
         # for the display
         self.VISIBILITY_X = 45  # width of the window in amount of blocks.
         self.VISIBILITY_Y = 2  # height of the window in amount of chunk height.
@@ -53,7 +53,7 @@ class Configuration:
         self.ACCELERATION_X = float(1 * self.PROPORTION)
         self.ACCELERATION_Y = 1.67 * self.PROPORTION
         self.COEFF_ACCELERATION_X = 1.3
-        self.SLOWDOWN__X = self.COEFF_ACCELERATION_X * self.ACCELERATION_X
+        self.SLOWDOWN_X = 1 / (self.COEFF_ACCELERATION_X * self.ACCELERATION_X)
         # speed
         self.SPEED_X = 16 * self.PROPORTION  # speed_x max
         self.SPEED_Y = self.BLOCK_HEIGHT * (14 / 16)  # speed_y max

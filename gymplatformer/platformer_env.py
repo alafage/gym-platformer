@@ -69,16 +69,15 @@ class PlatformerEnv(Env):
                 self.map.NB_CHUNK,
             ]
         )
-        self.observation_space = spaces.Box(low, high, dtype=np.float32)
+        self.observation_space = spaces.Box(low, high, dtype=np.float64)
         self.steps_beyond_done: int
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool]:
         """ TODO
         """
         # checks whether the action is valid or not
-        assert self.action_space.contains(
-            action
-        ), f"{action} ({type(action)}) invalid."
+        if not self.action_space.contains(action):
+            raise ValueError(f"{action} ({type(action)}) invalid.")
         # moves the player
         self.player.step(action, self.map.blocks)
         # loads the next chunk if needed
