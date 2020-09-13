@@ -16,11 +16,40 @@ Either copy the files containing the environments to your own code folder while 
 ```sh
 pip install git+https://github.com/alafage/gym-platformer.git
 ```
+## Basic Use
 
-Then you can import the environments into a python file by doing:
+Then you can import the environment into a python file and using it like below:
 
 ```python
 from gymplatformer import make
+import pygame
 
 env = make("PlatformerEnv")
+
+clock = pygame.time.Clock()
+# sets 
+env.reset()
+# game loop
+while True:
+    clock.tick(15)
+    env.render()
+
+    key = pygame.key.get_pressed()
+
+    if key[pygame.K_q]:
+        if key[pygame.K_z]:
+            env.step(2)
+        else:
+            env.step(0)
+    elif key[pygame.K_d]:
+        if key[pygame.K_z]:
+            env.step(3)
+        else:
+            env.step(1)
+    elif key[pygame.K_z]:
+        env.step(4)
+    elif key[pygame.K_ESCAPE]:
+        break
+    else:
+        env.step(5)
 ```
