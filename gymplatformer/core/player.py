@@ -32,7 +32,8 @@ class Player:
             self.x_speed = 0.0
 
         else:
-            self.x_speed = self.x_speed * self.cfg.SLOWDOWN_X
+            # FIXME
+            self.x_speed = float(int(self.x_speed * self.cfg.SLOWDOWN_X))
 
     def collisions(
         self, x_speed: float, y_speed: float, blocks: List[Block]
