@@ -10,7 +10,7 @@ def test_slowdown() -> None:
     assert player.x_speed == 0.0
     player.x_speed = 2.0
     player.slowdown()
-    assert player.x_speed == 2.0 * 0.8
+    assert player.x_speed == int(2.0 * 0.8)
 
 
 def test_step() -> None:
