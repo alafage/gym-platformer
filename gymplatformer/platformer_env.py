@@ -2,8 +2,9 @@
 from typing import Callable, Optional, Tuple
 
 import numpy as np
-import pygame
 from gym import Env, logger, spaces
+
+import pygame
 
 from .core import Configuration, Map, Player
 
@@ -18,7 +19,7 @@ class PlatformerEnv(Env):
     Description
     -----------
         Continuous platformer environment for reinforcement learning with gym
-        library.
+        and pygame libraries.
     Source
     ------
         TODO
@@ -30,7 +31,7 @@ class PlatformerEnv(Env):
         1       Player Vertical Position        0           height of the window
         2       Player Horizontal Velocity      -Inf        Inf
         3       Player Vertical Velocity        -Inf        Inf
-        4       Time                            0           100
+        4       Time                            0           episode duration
         5       Number of chunk passed          0           number of chunks
     Actions
     -------
@@ -44,7 +45,9 @@ class PlatformerEnv(Env):
         5       Does nothing
     """
 
-    def __init__(self, score_fct: Callable[[float, float], float]) -> None:
+    def __init__(
+        self, score_fct: Callable[[float, float], float], ep_duration: int
+    ) -> None:
         self.cfg = Configuration()
         self.map = Map(self.cfg)
         self.score_fct = score_fct
@@ -65,7 +68,7 @@ class PlatformerEnv(Env):
                 self.cfg.SIZE_Y - self.cfg.PLAYER_HEIGHT,
                 np.finfo(np.float32).max,
                 np.finfo(np.float32).max,
-                100,
+                ep_duration,
                 self.map.NB_CHUNK,
             ]
         )

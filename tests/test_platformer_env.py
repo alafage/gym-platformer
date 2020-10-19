@@ -5,14 +5,14 @@ from gymplatformer.utils import custom_score
 
 
 def test_step() -> None:
-    env = PlatformerEnv(custom_score)
+    env = PlatformerEnv(custom_score, 10)
     env.reset()
     with pytest.raises(ValueError):
         env.step(50)
 
 
 def test_reset() -> None:
-    env = PlatformerEnv(custom_score)
+    env = PlatformerEnv(custom_score, 10)
     env.reset()
     assert hasattr(env, "player")
     assert hasattr(env, "time_ref")
