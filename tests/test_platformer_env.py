@@ -21,7 +21,7 @@ def test_reset() -> None:
     assert env.time_val == 0.0
     assert env.score_val == 0.0
     assert env.completion == 0.0
-    assert env.steps_beyond_done == 0
+    assert env.steps_beyond_done is None
 
 
 def test_render() -> None:

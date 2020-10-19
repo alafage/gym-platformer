@@ -73,7 +73,7 @@ class PlatformerEnv(Env):
             ]
         )
         self.observation_space = spaces.Box(low, high, dtype=np.float64)
-        self.steps_beyond_done: int
+        self.steps_beyond_done: Optional[int]
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool]:
         """ TODO
@@ -117,6 +117,19 @@ class PlatformerEnv(Env):
                 self.score_val = new_score
             else:
                 reward = 0.0
+        elif self.steps_beyond_done is None:
+            # Episode just ended!
+            self.steps_beyond_done = 0
+            if self.completion != chunks_passed / self.map.NB_CHUNK:
+                self.completion = chunks_passed / self.map.NB_CHUNK
+                # new score computation
+                new_score = self.score_fct(self.time_val, self.completion,)
+                # computes action reward
+                reward = new_score - self.score_val
+                # updates the score
+                self.score_val = new_score
+            else:
+                reward = 0.0
         else:
             if self.steps_beyond_done == 0:
                 logger.warn(
@@ -133,13 +146,14 @@ class PlatformerEnv(Env):
     def reset(self):
         """ TODO
         """
+        self.map = Map(self.cfg)
         self.map.load_chunk("init", self.cfg.START_X)
         self.player = Player(self.cfg)
         self.time_ref = pygame.time.get_ticks() / 1000
         self.time_val = 0.0
         self.score_val = 0.0
         self.completion = 0.0
-        self.steps_beyond_done = 0
+        self.steps_beyond_done = None
 
     def render(self, mode: str = "human") -> Optional[np.ndarray]:
         """ Generates the environment graphical view.
