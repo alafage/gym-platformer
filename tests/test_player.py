@@ -1,4 +1,4 @@
-from gymplatformer.core import Configuration, Map, Player
+from gym_platformer.core import Configuration, Map, Player
 
 
 def test_slowdown() -> None:

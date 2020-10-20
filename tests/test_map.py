@@ -1,4 +1,4 @@
-from gymplatformer.core import Configuration, Map
+from gym_platformer.core import Configuration, Map
 
 
 def test_valid_chunk() -> None:

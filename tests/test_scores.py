@@ -1,4 +1,4 @@
-from gymplatformer.utils import custom_score
+from gym_platformer.utils import custom_score
 
 
 def test_custom_score() -> None:

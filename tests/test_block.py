@@ -1,4 +1,4 @@
-from gymplatformer.core import Block, Configuration
+from gym_platformer.core import Block, Configuration
 
 
 def test_block() -> None:

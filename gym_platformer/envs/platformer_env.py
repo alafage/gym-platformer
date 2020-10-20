@@ -2,11 +2,11 @@
 from typing import Callable, Optional, Tuple
 
 import numpy as np
+import pygame
 from gym import Env, logger, spaces
 
-import pygame
-
-from .core import Configuration, Map, Player
+from ..core import Configuration, Map, Player
+from ..utils import custom_score
 
 # fmt: on
 
@@ -15,7 +15,7 @@ class PlatformerEnv(Env):
     """ PlatformerEnv entity
     Parameter
     ---------
-    score_fct: Callable[[float, float, Dict[str, float]], float]
+    score_fct: Callable[..., float]
     Description
     -----------
         Continuous platformer environment for reinforcement learning with gym
@@ -45,8 +45,12 @@ class PlatformerEnv(Env):
         5       Does nothing
     """
 
+    metadata = {"render.modes": ["human", "rgb_array"]}
+
     def __init__(
-        self, score_fct: Callable[[float, float], float], ep_duration: int
+        self,
+        score_fct: Callable[..., float] = custom_score,
+        ep_duration: int = 50,
     ) -> None:
         self.cfg = Configuration()
         self.map = Map(self.cfg)

@@ -1,4 +1,4 @@
-def custom_score(time, completion) -> float:
+def custom_score(time: float, completion: float) -> float:
     """ Computes the score (between 0 and 100).
     Parameters
     ----------

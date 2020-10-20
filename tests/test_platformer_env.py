@@ -1,7 +1,7 @@
 import pytest
 
-from gymplatformer import PlatformerEnv
-from gymplatformer.utils import custom_score
+from gym_platformer.envs import PlatformerEnv
+from gym_platformer.utils import custom_score
 
 
 def test_step() -> None:
