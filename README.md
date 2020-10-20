@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.com/alafage/gym-platformer.svg?branch=master)](https://travis-ci.com/alafage/gym-platformer)
 [![codecov](https://codecov.io/gh/alafage/gym-platformer/branch/master/graph/badge.svg)](https://codecov.io/gh/alafage/gym-platformer)
 
-The Platformer environment is a single agent domain featuring continuous state and action spaces.
+The Platformer environment is a single agent domain featuring continuous state and action spaces. Currently only one map is available (more to come in the future).
 
 ## Source
 
@@ -11,45 +11,21 @@ Adaptation of the [simple-platformer](https://github.com/maxenceblanc/simple-pla
 
 ## Installation
 
-Either copy the files containing the environments to your own code folder while paying attention to the dependencies, or install the repository with the following command:
+Install the repository with the following command:
 
 ```sh
 pip install git+https://github.com/alafage/gym-platformer.git
 ```
+It will install `gym` and `pygame` libraries.
+
 ## Basic Use
 
-Then you can import the environment into a python file and using it like below:
+Then you can import the environment into a python file:
 
 ```python
-from gymplatformer import make
-import pygame
+import gym
 
-env = make("PlatformerEnv")
-
-clock = pygame.time.Clock()
-# sets 
+env = gym.make('gym_platformer:platformer-v0')
 env.reset()
-# game loop
-while True:
-    clock.tick(15)
-    env.render()
-
-    key = pygame.key.get_pressed()
-
-    if key[pygame.K_q]:
-        if key[pygame.K_z]:
-            env.step(2)
-        else:
-            env.step(0)
-    elif key[pygame.K_d]:
-        if key[pygame.K_z]:
-            env.step(3)
-        else:
-            env.step(1)
-    elif key[pygame.K_z]:
-        env.step(4)
-    elif key[pygame.K_ESCAPE]:
-        break
-    else:
-        env.step(5)
+env.render()
 ```

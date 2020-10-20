@@ -1,6 +1,6 @@
 [run]
 branch = True
-include = */gymplatformer/*
+include = */gym_platformer/*
 omit = *test*,
 
 [report]
