@@ -13,6 +13,8 @@ class Player:
     """ Player entity
     """
 
+    metadata = {"update_speed.action": [i for i in range(6)]}
+
     def __init__(self, cfg: Configuration) -> None:
         self.cfg = cfg
         self.rect = pygame.Rect(
@@ -27,7 +29,6 @@ class Player:
     def slowdown(self):
         """ Slows the player down.
         """
-
         if 1 > self.x_speed * self.cfg.SLOWDOWN_X > -1:
             self.x_speed = 0.0
 
@@ -41,11 +42,12 @@ class Player:
         """ Handling of collisions when moving the player.
         Parameters
         ----------
-        x_speed: ...
-        y_speed: ...
-        blocks: ...
+        x_speed: float
+            Horizontal speed of the player.
+        y_speed: float
+            Vertical speed of the player.
+        blocks: block-list
         """
-
         for block in blocks:
             if self.rect.colliderect(block.rect):
 
@@ -64,7 +66,10 @@ class Player:
                     self.y_speed = 0.0
 
     def ground(self, blocks: List[Block]) -> bool:
-        """ TODO
+        """ Checks whether the player is on the ground or not.
+        Parameter
+        ---------
+        blocks: block-list
         """
         for block in blocks:
             for pixel in range(
@@ -78,7 +83,7 @@ class Player:
         return False
 
     def update_speed(self, action: int, blocks: List[Block]) -> None:
-        """ Updates player speed on x and y axis.
+        """ Updates player speed on horizontal and vertical axis.
         Parameters
         ----------
         action: int
@@ -148,7 +153,12 @@ class Player:
         self.collisions(0, self.y_speed, blocks)
 
     def step(self, action: int, blocks: List[Block]) -> None:
-        """ TODO
+        """ Updates player object state according to an action.
+        Parameters
+        ----------
+        action: int
+            A valid action index (see metadata for available indexes).
+        blocks: block-list
         """
         self.update_speed(action, blocks)
         self.update_coor(blocks)

@@ -33,6 +33,10 @@ class Map:
         self.level_idx: int = 1
         self.NB_CHUNK = len(self.level)
 
+    def reset(self) -> None:
+        self.blocks = []
+        self.level_idx = 1
+
     def valid_chunk(self, chunk: List[str]) -> bool:
         if len(chunk) == self.cfg.CHUNK_HEIGHT:
             for i in range(1, len(chunk)):

@@ -13,26 +13,32 @@ from ..utils import custom_score
 
 class PlatformerEnv(Env):
     """ PlatformerEnv entity
-    Parameter
+    Parameters
     ---------
-    score_fct: Callable[..., float]
+    score_fct: Callable[..., float], default=`gym_platformer.utils.custom_score`
+        The score function that will be use to compute the overall
+        score of the agent.
+    ep_duration: int, default=50
+        The duration of the episode in seconds.
     Description
     -----------
         Continuous platformer environment for reinforcement learning with gym
         and pygame libraries.
     Source
     ------
-        TODO
+        Adaptation of the simple-platformer developped by Maxence Blanc into a
+        gym environment.
+        See https://github.com/maxenceblanc/simple-platformer for more details.
     Observation:
     ------------
         Type: Box(5)
         Num     Observation                     Min         Max
         0       Player Horizontal Position      0           Inf
-        1       Player Vertical Position        0           height of the window
+        1       Player Vertical Position        0           Height of the window
         2       Player Horizontal Velocity      -Inf        Inf
         3       Player Vertical Velocity        -Inf        Inf
-        4       Time                            0           episode duration
-        5       Number of chunk passed          0           number of chunks
+        4       Time                            0           Episode duration
+        5       Number of chunk passed          0           Number of chunks
     Actions
     -------
         Type: Discrete(6)
@@ -80,7 +86,19 @@ class PlatformerEnv(Env):
         self.steps_beyond_done: Optional[int]
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool]:
-        """ TODO
+        """ Updates the environment according to an action of the agent.
+        Parameter
+        ---------
+        action: int
+            A valid action index.
+        Returns
+        -------
+        numpy.ndarray
+            State vector of the environment.
+        float
+            Reward for making the action.
+        bool
+            Indicates episode completion.
         """
         # checks whether the action is valid or not
         if not self.action_space.contains(action):
@@ -147,10 +165,10 @@ class PlatformerEnv(Env):
 
         return state, reward, done
 
-    def reset(self):
-        """ TODO
+    def reset(self) -> None:
+        """ Resets the state of the environment.
         """
-        self.map = Map(self.cfg)
+        self.map.reset()
         self.map.load_chunk("init", self.cfg.START_X)
         self.player = Player(self.cfg)
         self.time_ref = pygame.time.get_ticks() / 1000

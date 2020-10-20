@@ -1,18 +1,22 @@
+import numpy as np
 import pytest
 
 from gym_platformer.envs import PlatformerEnv
-from gym_platformer.utils import custom_score
 
 
 def test_step() -> None:
-    env = PlatformerEnv(custom_score, 10)
+    env = PlatformerEnv(ep_duration=10)
     env.reset()
     with pytest.raises(ValueError):
         env.step(50)
+    state, reward, done = env.step(5)
+    assert isinstance(state, np.ndarray)
+    assert isinstance(reward, float)
+    assert isinstance(done, bool)
 
 
 def test_reset() -> None:
-    env = PlatformerEnv(custom_score, 10)
+    env = PlatformerEnv(ep_duration=10)
     env.reset()
     assert hasattr(env, "player")
     assert hasattr(env, "time_ref")
@@ -25,4 +29,12 @@ def test_reset() -> None:
 
 
 def test_render() -> None:
-    ...
+    env = PlatformerEnv(ep_duration=10)
+    env.reset()
+    view = env.render(mode="rgb_array")
+    assert isinstance(view, np.ndarray)
+    assert view.shape[0] == env.cfg.SIZE_Y
+    assert view.shape[1] == env.cfg.SIZE_X
+    assert view.shape[2] == 3
+    with pytest.raises(ValueError):
+        env.render(mode="random_mode")
