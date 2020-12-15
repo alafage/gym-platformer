@@ -65,6 +65,7 @@ class PlatformerEnv(Env):
         self.score_val: float
         self.player: Player
         self.time_val: int
+        self.ep_duration = ep_duration
         self.completion: float
         self.viewer: pygame.Surface
         self.action_space = spaces.Discrete(6)
@@ -78,7 +79,7 @@ class PlatformerEnv(Env):
                 self.cfg.SIZE_Y - self.cfg.PLAYER_HEIGHT,
                 np.finfo(np.float32).max,
                 np.finfo(np.float32).max,
-                ep_duration,
+                ep_duration - 1,
                 self.map.NB_CHUNK,
             ]
         )
@@ -129,29 +130,50 @@ class PlatformerEnv(Env):
         # done
         done = not self.observation_space.contains(state)
         if not done:
-            if self.completion != chunks_passed / self.map.NB_CHUNK:
-                self.completion = chunks_passed / self.map.NB_CHUNK
-                # new score computation
-                new_score = self.score_fct(self.time_val, self.completion,)
-                # computes action reward
-                reward = new_score - self.score_val
-                # updates the score
-                self.score_val = new_score
-            else:
-                reward = 0.0
+            # if self.completion != chunks_passed / self.map.NB_CHUNK:
+            #     self.completion = chunks_passed / self.map.NB_CHUNK
+            #     # new score computation
+            #     new_score = self.score_fct(self.time_val, self.completion,)
+            #     # computes action reward
+            #     reward = new_score - self.score_val
+            #     # updates the score
+            #     self.score_val = new_score
+            # else:
+            #     reward = 0.0
+            self.completion = chunks_passed / self.map.NB_CHUNK
+            time = 1 - (self.time_val / self.ep_duration)
+            # new score computation
+            new_score = self.score_fct(
+                time, self.completion, self.player.rect.x
+            )
+            # computes action reward
+            reward = new_score - self.score_val
+            # updates the score
+            self.score_val = new_score
+
         elif self.steps_beyond_done is None:
             # Episode just ended!
             self.steps_beyond_done = 0
-            if self.completion != chunks_passed / self.map.NB_CHUNK:
-                self.completion = chunks_passed / self.map.NB_CHUNK
-                # new score computation
-                new_score = self.score_fct(self.time_val, self.completion,)
-                # computes action reward
-                reward = new_score - self.score_val
-                # updates the score
-                self.score_val = new_score
-            else:
-                reward = 0.0
+            # if self.completion != chunks_passed / self.map.NB_CHUNK:
+            #     self.completion = chunks_passed / self.map.NB_CHUNK
+            #     # new score computation
+            #     new_score = self.score_fct(self.time_val, self.completion,)
+            #     # computes action reward
+            #     reward = new_score - self.score_val
+            #     # updates the score
+            #     self.score_val = new_score
+            # else:
+            #     reward = 0.0
+            self.completion = chunks_passed / self.map.NB_CHUNK
+            time = 1 - (self.time_val / self.ep_duration)
+            # new score computation
+            new_score = self.score_fct(
+                time, self.completion, self.player.rect.x
+            )
+            # computes action reward
+            reward = new_score - self.score_val
+            # updates the score
+            self.score_val = new_score
         else:
             if self.steps_beyond_done == 0:
                 logger.warn(

@@ -1,4 +1,4 @@
-def custom_score(time: float, completion: float) -> float:
+def custom_score(time: float, completion: float, x: int) -> float:
     """ Computes the score (between 0 and 100).
     Parameters
     ----------
@@ -10,5 +10,12 @@ def custom_score(time: float, completion: float) -> float:
     -----------
         A low play time and a high completion rate are valorized.
     """
-    score = (completion * 25) * (2 + 2 * (1 / (1 + time ** 1.5)))
-    return round(score, 1)
+    # completion score
+    comp_s = completion
+    # duration score
+    time_s = time
+    # distance score
+    dist_s = x * 1e-4
+    # overall score
+    score = 5 * (15 * comp_s + 5 * dist_s + 1 * time_s)
+    return score
