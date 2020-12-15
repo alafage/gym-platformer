@@ -17,5 +17,5 @@ def custom_score(time: float, completion: float, x: int) -> float:
     # distance score
     dist_s = x * 1e-4
     # overall score
-    score = 5 * (15 * comp_s + 5 * dist_s + 1 * time_s)
+    score = 5 * ((comp_s * (10 + 5 * time_s)) + 5 * dist_s)
     return score

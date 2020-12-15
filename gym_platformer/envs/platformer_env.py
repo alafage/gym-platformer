@@ -67,6 +67,7 @@ class PlatformerEnv(Env):
         self.time_val: int
         self.ep_duration = ep_duration
         self.completion: float
+        self.last_chunk_time: int
         self.viewer: pygame.Surface
         self.action_space = spaces.Discrete(6)
 
@@ -140,6 +141,8 @@ class PlatformerEnv(Env):
             #     self.score_val = new_score
             # else:
             #     reward = 0.0
+            if self.completion != chunks_passed / self.map.NB_CHUNK:
+                self.last_chunk_time = self.time_val
             self.completion = chunks_passed / self.map.NB_CHUNK
             time = 1 - (self.time_val / self.ep_duration)
             # new score computation
@@ -164,8 +167,10 @@ class PlatformerEnv(Env):
             #     self.score_val = new_score
             # else:
             #     reward = 0.0
+            if self.completion != chunks_passed / self.map.NB_CHUNK:
+                self.last_chunk_time = self.time_val
             self.completion = chunks_passed / self.map.NB_CHUNK
-            time = 1 - (self.time_val / self.ep_duration)
+            time = 1 - (self.last_chunk_time / self.ep_duration)
             # new score computation
             new_score = self.score_fct(
                 time, self.completion, self.player.rect.x
@@ -196,6 +201,7 @@ class PlatformerEnv(Env):
         self.time_val = 0
         self.score_val = 0.0
         self.completion = 0.0
+        self.last_chunk_time = 0
         self.steps_beyond_done = None
 
     def render(self, mode: str = "human") -> Optional[np.ndarray]:
