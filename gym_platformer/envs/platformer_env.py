@@ -198,7 +198,7 @@ class PlatformerEnv(Env):
             pygame.init()
             font = pygame.font.Font("freesansbold.ttf", 26)
             text = font.render(
-                f"Time: {round(self.time_val, 1)}s | "
+                f"Steps: {self.time_val} | "
                 f"Completion: {round(self.completion*100, 0)}% | "
                 f"Score: {round(self.score_val, 1)}",
                 True,
