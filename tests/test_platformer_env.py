@@ -1,5 +1,4 @@
 import numpy as np
-import pygame
 import pytest
 
 from gym_platformer.envs import PlatformerEnv
@@ -14,7 +13,7 @@ def test_step() -> None:
     assert isinstance(state, np.ndarray)
     assert isinstance(reward, float)
     assert isinstance(done, bool)
-    env.time_ref = (pygame.time.get_ticks() / 1000) - 11
+    env.time_val = 10
     _, _, done = env.step(5)
     assert done is True
     with pytest.warns(UserWarning):
@@ -25,10 +24,7 @@ def test_reset() -> None:
     env = PlatformerEnv(ep_duration=10)
     env.reset()
     assert hasattr(env, "player")
-    assert hasattr(env, "time_ref")
-    if hasattr(env, "time_ref"):
-        assert isinstance(env.time_ref, float)
-    assert env.time_val == 0.0
+    assert env.time_val == 0
     assert env.score_val == 0.0
     assert env.completion == 0.0
     assert env.steps_beyond_done is None

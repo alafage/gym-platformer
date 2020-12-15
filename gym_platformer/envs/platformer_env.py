@@ -2,8 +2,9 @@
 from typing import Callable, Optional, Tuple
 
 import numpy as np
-import pygame
 from gym import Env, logger, spaces
+
+import pygame
 
 from ..core import Configuration, Map, Player
 from ..utils import custom_score
@@ -19,7 +20,7 @@ class PlatformerEnv(Env):
         The score function that will be use to compute the overall
         score of the agent.
     ep_duration: int, default=50
-        The duration of the episode in seconds.
+        The duration of the episode in number of environment updates.
     Description
     -----------
         Continuous platformer environment for reinforcement learning with gym
@@ -63,8 +64,7 @@ class PlatformerEnv(Env):
         self.score_fct = score_fct
         self.score_val: float
         self.player: Player
-        self.time_ref: float
-        self.time_val: float
+        self.time_val: int
         self.completion: float
         self.viewer: pygame.Surface
         self.action_space = spaces.Discrete(6)
@@ -108,7 +108,7 @@ class PlatformerEnv(Env):
         # loads the next chunk if needed
         self.map.level_generation()
         # update time
-        self.time_val = pygame.time.get_ticks() / 1000 - self.time_ref
+        self.time_val += 1
         # get number of chunk passed
         # FIXME: not very viable but works for that list length.
         chunks_passed = 0
@@ -171,8 +171,7 @@ class PlatformerEnv(Env):
         self.map.reset()
         self.map.load_chunk("init", self.cfg.START_X)
         self.player = Player(self.cfg)
-        self.time_ref = pygame.time.get_ticks() / 1000
-        self.time_val = 0.0
+        self.time_val = 0
         self.score_val = 0.0
         self.completion = 0.0
         self.steps_beyond_done = None
