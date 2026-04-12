@@ -1,5 +1,7 @@
 import gymnasium as gym
 
+import gym_platformer  # noqa: F401
+
 if __name__ == "__main__":
     env = gym.make("platformer-v0")
     state, info = env.reset()
