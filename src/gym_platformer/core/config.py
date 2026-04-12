@@ -1,17 +1,14 @@
-# fmt: off
 from pygame.locals import K_LEFT, K_RIGHT, K_d, K_q, K_z
-
-# fmt: on
 
 
 class Configuration:
-    """ TODO
-    """
-
     def __init__(self, proportion: float = 1.0, chunk_height: int = 16) -> None:
+        """Configuration class object.
 
-        # APP CONFIGURATION
-
+        Args:
+            proportion (float, optional): _description_. Defaults to 1.0.
+            chunk_height (int, optional): _description_. Defaults to 16.
+        """
         # folder for run's data files
         self.DATA_FOLDER: str = "data"
         self.DATA_FILE: str = "data"
@@ -32,9 +29,7 @@ class Configuration:
         # for the display
         self.VISIBILITY_X = 45  # width of the window in amount of blocks.
         self.VISIBILITY_Y = 2  # height of the window in amount of chunk height.
-        self.SIZE_X = (
-            self.BLOCK_WIDTH * self.VISIBILITY_X
-        )  # width of the window in pixels.
+        self.SIZE_X = self.BLOCK_WIDTH * self.VISIBILITY_X  # width of the window in pixels.
         self.SIZE_Y = (
             self.CHUNK_HEIGHT * self.BLOCK_HEIGHT * self.VISIBILITY_Y
         )  # height of the window in pixels.

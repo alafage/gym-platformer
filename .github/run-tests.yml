@@ -1,0 +1,55 @@
+name: Example
+
+jobs:
+  uv-example:
+    name: python
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.11.6"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Check style & format
+        run: |
+          uv run ruff check src/gym_platformer --no-fix --statistics
+          uv run format src/gym_platformer --check
+
+      - name: Test with pytest and compute coverage
+        run: |
+          uv run --frozen pytest tests --cov --cov-report xml --cov-report term --durations=10 --junitxml=junit.xml
+      
+      - name: Upload coverage to Codecov
+        if: github.event_name != 'pull_request' || github.base_ref == 'dev'
+        uses: codecov/codecov-action@v4
+        continue-on-error: true
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: coverage.xml
+          flags: pytest
+          name: coverage
+          env_vars: PYTHON_VERSION
+      
+      - name: Upload test results to Codecov
+        if: github.event_name != 'pull_request' || github.base_ref == 'dev'
+        uses: codecov/codecov-action@v5
+        continue-on-error: true
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: pytest
+          env_vars: PYTHON_VERSION
+          report_type: test_results

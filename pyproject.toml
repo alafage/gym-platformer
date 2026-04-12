@@ -1,22 +1,127 @@
-[tool.black]
-line-length = 80
-target_version = ['py36', 'py37']
-include = '\.pyi?$'
-exclude = '''
-/(
-    __pycache__
-  | \.git
-  | \.mypy_cache
-  | \.tox
-  | \.ipynb_checkpoints
-  | build
-  | dist
-)/
-'''
+[build-system]
+requires = ["uv_build>=0.8.22,<0.9.0"]
+build-backend = "uv_build"
 
-[tool.isort]
-line_length = 80
-multi_line_output = 5
-balanced_wrapping = true
-# known_pandas=numpy,pandas,shapely,altair,pyproj
-# sections=FUTURE,STDLIB,PANDAS,THIRDPARTY,FIRSTPARTY,LOCALFOLDER
+[project]
+name = "gym_platformer"
+version = "1.0.0"
+authors = [
+  {name = "Adrien Lafage", email = "adrienlafage@outlook.com"},
+]
+description = "Simple platformer environment for OpenAI Gym."
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+dependencies = ["gymnasium", "pygame"]
+
+[dependency-groups]
+dev = [
+  { include-group = "lint" },
+  { include-group = "test" },
+]
+
+lint = ["ruff==0.15.7", "pre-commit", "pre-commit-hooks"]
+test = ["gym_platformer", "pytest-cov"]
+
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".ipynb_checkpoints",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "__pycache__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "venv",
+]
+
+[tool.ruff.lint]
+extend-select = [
+  "A",
+  "ARG",
+  "B",
+  "BLE",
+  "C4",
+  "D",
+  "ERA",
+  "F",
+  "FURB",
+  "G",
+  "I",
+  "INT",
+  "ISC",
+  "ICN",
+  "N",
+  "NPY",
+  "PERF",
+  "PIE",
+  "PT",
+  "PTH",
+  "PYI",
+  "Q",
+  "RET",
+  "RUF",
+  "RSE",
+  "S",
+  "SIM",
+  "T20",
+  "TC",
+  "TCH",
+  "TID",
+  "TRY",
+  "UP",
+  "YTT",
+]
+ignore = [
+  "ARG002",
+  "D100",
+  "D101",
+  "D102",
+  "D103",
+  "D104",
+  "D107",
+  "D205",
+  "D206",
+  "ISC001",
+  "N818",
+  "N812",
+  "PT011",
+  "RUF012",
+  "S101",
+  "TRY003",
+]
+pydocstyle.convention = "google"
+
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = 80
+
+[tool.coverage.run]
+branch = true
+include = ["*/gym-platformer/*"]
+omit = ["*/tests/*", ".venv/*", "*/venv/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "coverage: ignore",
+  "raise NotImplementedError",
+  "raise ImportError",
+]
+ignore_errors = true

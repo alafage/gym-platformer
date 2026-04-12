@@ -1,21 +1,18 @@
-# fmt: off
-from typing import List
-
 import pygame
 
 from .block import Block
 from .config import Configuration
 
-# fmt: on
-
 
 class Player:
-    """ Player entity
-    """
-
-    metadata = {"update_speed.action": [i for i in range(6)]}
+    metadata = {"update_speed.action": list(range(6))}
 
     def __init__(self, cfg: Configuration) -> None:
+        """Player entity.
+
+        Args:
+            cfg (Configuration): The configuration of the environment.
+        """
         self.cfg = cfg
         self.rect = pygame.Rect(
             self.cfg.START_X,
@@ -27,8 +24,7 @@ class Player:
         self.y_speed: float = 0.0
 
     def slowdown(self):
-        """ Slows the player down.
-        """
+        """Slows the player down."""
         if 1 > self.x_speed * self.cfg.SLOWDOWN_X > -1:
             self.x_speed = 0.0
 
@@ -36,21 +32,16 @@ class Player:
             # FIXME
             self.x_speed = float(int(self.x_speed * self.cfg.SLOWDOWN_X))
 
-    def collisions(
-        self, x_speed: float, y_speed: float, blocks: List[Block]
-    ) -> None:
-        """ Handling of collisions when moving the player.
-        Parameters
-        ----------
-        x_speed: float
-            Horizontal speed of the player.
-        y_speed: float
-            Vertical speed of the player.
-        blocks: block-list
+    def collisions(self, x_speed: float, y_speed: float, blocks: list[Block]) -> None:
+        """Handling of collisions when moving the player.
+
+        Args:
+            x_speed (float): Horizontal speed of the player.
+            y_speed (float): Vertical speed of the player.
+            blocks (list[Block]): A list of blocks in the environment.
         """
         for block in blocks:
             if self.rect.colliderect(block.rect):
-
                 if x_speed > 0:
                     self.rect.right = block.rect.left
                     self.slowdown()
@@ -65,30 +56,24 @@ class Player:
                     self.rect.top = block.rect.bottom
                     self.y_speed = 0.0
 
-    def ground(self, blocks: List[Block]) -> bool:
-        """ Checks whether the player is on the ground or not.
-        Parameter
-        ---------
-        blocks: block-list
+    def ground(self, blocks: list[Block]) -> bool:
+        """Checks whether the player is on the ground or not.
+
+        Args:
+            blocks (list[Block]): A list of blocks in the environment.
         """
         for block in blocks:
-            for pixel in range(
-                -(self.cfg.BLOCK_WIDTH - 1), self.cfg.BLOCK_WIDTH
-            ):
-                if (
-                    self.rect.bottom == block.rect.top
-                    and self.rect.left == block.rect.left + pixel
-                ):
+            for pixel in range(-(self.cfg.BLOCK_WIDTH - 1), self.cfg.BLOCK_WIDTH):
+                if self.rect.bottom == block.rect.top and self.rect.left == block.rect.left + pixel:
                     return True
         return False
 
-    def update_speed(self, action: int, blocks: List[Block]) -> None:
-        """ Updates player speed on horizontal and vertical axis.
-        Parameters
-        ----------
-        action: int
-            Action code indicating the next movement of the player.
-        blocks: block-list
+    def update_speed(self, action: int, blocks: list[Block]) -> None:
+        """Updates player speed on horizontal and vertical axis.
+
+        Args:
+            action (int): A valid action index (see metadata for available indexes).
+            blocks (list[Block]): A list of blocks in the environment.
         """
         # HORIZONTAL MOVEMENTS
 
@@ -125,11 +110,11 @@ class Player:
         elif self.x_speed > self.cfg.SPEED_X:
             self.x_speed = float(self.cfg.SPEED_X)
 
-    def update_coor(self, blocks: List[Block]) -> None:
-        """ Moves the player
-        Parameter
-        ---------
-        blocks: block-list
+    def update_coor(self, blocks: list[Block]) -> None:
+        """Moves the player.
+
+        Args:
+            blocks (list[Block]): A list of blocks in the environment.
         """
         self.rect.x += self.x_speed
 
@@ -152,13 +137,12 @@ class Player:
         self.rect.y += self.y_speed
         self.collisions(0, self.y_speed, blocks)
 
-    def step(self, action: int, blocks: List[Block]) -> None:
-        """ Updates player object state according to an action.
-        Parameters
-        ----------
-        action: int
-            A valid action index (see metadata for available indexes).
-        blocks: block-list
+    def step(self, action: int, blocks: list[Block]) -> None:
+        """Updates player object state according to an action.
+
+        Args:
+            action (int): A valid action index (see metadata for available indexes).
+            blocks (list[Block]): A list of blocks in the environment.
         """
         self.update_speed(action, blocks)
         self.update_coor(blocks)

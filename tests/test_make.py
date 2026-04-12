@@ -1,5 +1,5 @@
 import numpy as np
-from gym import make
+from gymnasium import make
 
 
 def test_make() -> None:

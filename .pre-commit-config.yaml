@@ -1,24 +1,49 @@
+default_language_version:
+  python: python3
+
 repos:
--   repo: local
+  - repo: local
     hooks:
-    - id: black
-      name: black
-      language: system
-      entry: black
-      types: [python]
-    - id: flake8
-      name: flake8
-      language: system
-      entry: flake8
-      types: [python]
-    - id: mypy
-      name: mypy
-      language: system
-      entry: mypy
-      types: [python]
-    - id: isort
-      name: isort
-      language: system
-      entry: isort
-      types: [python]
-  
+      - id: end-of-file-fixer
+        name: end-of-file-fixer
+        entry: end-of-file-fixer
+        language: system
+        types: [text]
+      - id: check-toml
+        name: check-toml
+        entry: check-toml
+        language: system
+        types: [toml]
+      - id: check-yaml
+        name: check-yaml
+        language: system
+        entry: check-yaml
+        types: [yaml]
+      - id: check-merge-conflict
+        name: check-merge-conflict
+        entry: check-merge-conflict
+        language: system
+      - id: check-added-large-files
+        name: check-added-large-files
+        entry: check-added-large-files
+        language: system
+        exclude: uv.lock
+      - id: ruff-check
+        name: ruff-check
+        entry: ruff check
+        language: python
+        types_or: [python, pyi]
+        require_serial: true
+        args:
+          [
+            --force-exclude,
+            --fix,
+            --exit-non-zero-on-fix,
+            --output-format,
+            concise,
+          ]
+      - id: ruff-format
+        name: ruff-format
+        entry: ruff format
+        language: python
+        types_or: [python, pyi]

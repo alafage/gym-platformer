@@ -1,3 +1,5 @@
+import re
+
 import numpy as np
 import pytest
 
@@ -16,7 +18,13 @@ def test_step() -> None:
     env.time_val = 10
     _, _, done = env.step(5)
     assert done is True
-    with pytest.warns(UserWarning):
+    with pytest.warns(
+        UserWarning,
+        match=re.escape(
+            "You are calling 'step()' even though this environment has already returned done = True. You "
+            "should always call 'reset()' once you receive 'done = True' -- any further steps are undefined behavior."
+        ),
+    ):
         env.step(5)
 
 

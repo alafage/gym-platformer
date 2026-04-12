@@ -16,7 +16,7 @@ def test_slowdown() -> None:
 def test_step() -> None:
     cfg = Configuration(chunk_height=8)
     cfg.START_X = 2 * cfg.BLOCK_WIDTH
-    map = Map(cfg)
+    map_obj = Map(cfg)
     player = Player(cfg)
     chunk_test = [
         "     ",
@@ -28,22 +28,22 @@ def test_step() -> None:
         "    W",
         "WWWWW",
     ]
-    map.load_chunk(chunk_test, 0)
+    map_obj.load_chunk(chunk_test, 0)
     # test vertical moves
-    player.step(4, map.blocks)
+    player.step(4, map_obj.blocks)
     assert player.y_speed == -cfg.SPEED_Y
     assert player.x_speed == 0
     assert player.rect.x == cfg.START_X
     assert player.rect.y == cfg.START_Y - cfg.SPEED_Y
     for _ in range(20):
-        player.step(5, map.blocks)
+        player.step(5, map_obj.blocks)
     # test horizontal moves
     player.x_speed = cfg.SPEED_X
-    player.step(1, map.blocks)
+    player.step(1, map_obj.blocks)
     assert player.x_speed == cfg.SPEED_X
     assert player.rect.x == 48
     assert player.rect.y == 208
-    player.step(1, map.blocks)
+    player.step(1, map_obj.blocks)
     assert player.x_speed < cfg.SPEED_X
     assert player.rect.x == 48
     assert player.rect.y == 208
