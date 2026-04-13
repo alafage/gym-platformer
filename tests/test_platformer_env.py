@@ -11,12 +11,14 @@ def test_step() -> None:
     env.reset()
     with pytest.raises(ValueError):
         env.step(50)
-    state, reward, done = env.step(5)
-    assert isinstance(state, np.ndarray)
+    observation, reward, done, truncated, info = env.step(5)
+    assert isinstance(observation, dict)
     assert isinstance(reward, float)
     assert isinstance(done, bool)
+    assert isinstance(truncated, bool)
+    assert isinstance(info, dict)
     env.time_val = 10
-    _, _, done = env.step(5)
+    _, _, done, truncated, _ = env.step(5)
     assert done is True
     with pytest.warns(
         UserWarning,
