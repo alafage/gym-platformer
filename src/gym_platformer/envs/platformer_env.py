@@ -17,7 +17,7 @@ class PlatformerEnv(Env):
         score_fct (Callable[..., float]), default=`gym_platformer.utils.custom_score`
             The score function that will be use to compute the overall
             score of the agent.
-        ep_duration (int): The duration of the episode in number of environment updates.
+        ep_duration (float): The duration of the episode in number of environment updates.
             Default to 50.
 
     Description:
@@ -32,12 +32,19 @@ class PlatformerEnv(Env):
     Observation:
         Type: Box(5)
         Num     Observation                     Min         Max
-        0       Player Horizontal Position      0           Inf
-        1       Player Vertical Position        0           Height of the window
-        2       Player Horizontal Velocity      -Inf        Inf
-        3       Player Vertical Velocity        -Inf        Inf
-        4       Time                            0           Episode duration
-        5       Number of chunk passed          0           Number of chunks
+        0       Game window image (HxWxC)         0         255
+        1       Player Horizontal Position        0         Inf
+        2       Player Vertical Position          0         Height of the window - Player height
+        3       Player Horizontal Velocity     -Inf         Inf
+        4       Player Vertical Velocity       -Inf         Inf
+
+    Information:
+        Type: Dict
+        Num     Information                      Min         Max
+        0       Time                              0         Episode duration
+        1       Number of chunk passed            0         Number of chunks
+        2       Score                             -Inf      Inf
+
     Actions:
         Type: Discrete(6)
         Num     Action
@@ -55,7 +62,7 @@ class PlatformerEnv(Env):
         self,
         render_mode: Literal["human", "rgb_array"] | None = None,
         score_fct: Callable[..., float] = custom_score,
-        ep_duration: int = 50,
+        ep_duration: float = 50,
     ) -> None:
         self.cfg = Configuration()
         self.map = Map(self.cfg)
@@ -68,8 +75,22 @@ class PlatformerEnv(Env):
         self.last_chunk_time: int
         self.viewer: pygame.Surface
 
-        image_shape = (self.cfg.SIZE_X, self.cfg.SIZE_Y, 3)
-        self.observation_space = spaces.Box(0, 255, shape=image_shape, dtype=np.uint8)
+        image_shape = (self.cfg.SIZE_Y, self.cfg.SIZE_X, 3)
+        self.observation_space = spaces.Dict(
+            {
+                "image": spaces.Box(0, 255, shape=image_shape, dtype=np.uint8),
+                "player_pos_x": spaces.Box(low=0, high=float("inf"), shape=(1,), dtype=np.float32),
+                "player_pos_y": spaces.Box(
+                    low=0,
+                    high=self.cfg.SIZE_Y - self.cfg.PLAYER_HEIGHT,
+                    shape=(1,),
+                    dtype=np.float32,
+                ),
+                "player_vel": spaces.Box(
+                    low=-float("inf"), high=float("inf"), shape=(2,), dtype=np.float32
+                ),
+            }
+        )
 
         self.action_space = spaces.Discrete(6)
 
@@ -79,15 +100,24 @@ class PlatformerEnv(Env):
         self.window = None
         self.clock = None
 
-    def _get_obs(self) -> np.ndarray:
-        return self.render(mode="rgb_array")
+    def _get_obs(self) -> dict[str, Any]:
+        return {
+            "image": self.render(mode="rgb_array"),
+            "player_pos_x": np.array([self.player.rect.x], dtype=np.float32),
+            "player_pos_y": np.array([self.player.rect.y], dtype=np.float32),
+            "player_vel": np.array([self.player.x_speed, self.player.y_speed], dtype=np.float32),
+        }
 
     def _get_info(self) -> dict[str, Any]:
-        return {}
+        return {
+            "time": self.time_val,
+            "completion": self.completion,
+            "score": self.score_val,
+        }
 
     def reset(
         self, seed: int | None = None, options: dict[str, Any] | None = None
-    ) -> tuple[np.ndarray, dict[str, Any]]:
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
         """Resets the state of the environment."""
         super().reset(seed=seed)
         self.map.reset()
@@ -107,16 +137,17 @@ class PlatformerEnv(Env):
 
         return observation, info
 
-    def step(self, action: int) -> tuple[np.ndarray, float, bool, dict[str, Any]]:
+    def step(self, action: int) -> tuple[dict[str, Any], float, bool, bool, dict[str, Any]]:
         """Updates the environment according to an action of the agent.
 
         Args:
             action (int): A valid action index.
 
         Returns:
-            numpy.ndarray: State vector of the environment.
+            dict[str, Any]: Observation of the environment.
             float: Reward for making the action.
             bool: Indicates episode completion.
+            bool: Indicates episode truncation.
             dict[str, Any]: Additional information about the environment.
         """
         # checks whether the action is valid or not
@@ -129,12 +160,20 @@ class PlatformerEnv(Env):
         # update time
         self.time_val += 1
         # get number of chunk passed
-        # FIXME: not very viable but works for that list length.
+        # FIXME: not efficient but works for that list length.
         chunks_passed = 0
         for block in self.map.blocks:
             if block.block_type == "end" and block.rect.x < self.player.rect.x:
                 chunks_passed += 1
-        done = False
+
+        observation = self._get_obs()
+        info = self._get_info()
+
+        done = (
+            self.time_val >= self.ep_duration
+            or chunks_passed >= self.map.NB_CHUNK
+            or self.observation_space.contains(observation) is False
+        )
 
         if not done:
             if self.completion != chunks_passed / self.map.NB_CHUNK:
@@ -173,13 +212,10 @@ class PlatformerEnv(Env):
             self.steps_beyond_done += 1
             reward = 0.0
 
-        observation = self._get_obs()
-        info = self._get_info()
-
         if self.render_mode == "human":
             self.render()
 
-        return observation, reward, done, info
+        return observation, reward, done, False, info
 
     def render(self, mode: str = "human") -> np.ndarray | None:
         """Generates the environment graphical view.
@@ -201,15 +237,6 @@ class PlatformerEnv(Env):
         if mode == "human":
             if self.window is None:
                 pygame.init()
-                font = pygame.font.Font("freesansbold.ttf", 26)
-                text = font.render(
-                    f"Steps: {self.time_val} | "
-                    f"Completion: {round(self.completion * 100, 0)}% | "
-                    f"Score: {round(self.score_val, 1)}",
-                    True,
-                    (0, 255, 0),
-                )
-                self.viewer.blit(text, (5, 5))
                 screen = pygame.display.set_mode((self.cfg.SIZE_X, self.cfg.SIZE_Y))
                 self.window = screen
 
@@ -217,6 +244,15 @@ class PlatformerEnv(Env):
                 self.clock = pygame.time.Clock()
 
             # refreshes the window
+            font = pygame.font.Font("freesansbold.ttf", 26)
+            text = font.render(
+                f"Steps: {self.time_val} | "
+                f"Completion: {round(self.completion * 100, 0)}% | "
+                f"Score: {round(self.score_val, 1)}",
+                True,
+                (0, 255, 0),
+            )
+            self.viewer.blit(text, (5, 5))
             self.window.blit(self.viewer, (0, 0))
             pygame.display.update()
 
