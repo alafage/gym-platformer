@@ -50,7 +50,7 @@ jobs:
       
       - name: Upload coverage to Codecov
         if: github.event_name != 'pull_request' || github.base_ref == 'dev'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         continue-on-error: true
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -61,7 +61,7 @@ jobs:
       
       - name: Upload test results to Codecov
         if: github.event_name != 'pull_request' || github.base_ref == 'dev'
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         continue-on-error: true
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
