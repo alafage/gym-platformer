@@ -6,7 +6,7 @@ The Platformer environment is a single agent domain featuring continuous state a
 
 ## Source
 
-Adaptation of the [simple-platformer](https://github.com/maxenceblanc/simple-platformer) developped by [Maxence Blanc](https://github.com/maxenceblanc) into a `gym` environment.
+Adaptation of the [simple-platformer](https://github.com/maxenceblanc/simple-platformer) developped by [Maxence Blanc](https://github.com/maxenceblanc) into a [`gymnasium`](https://gymnasium.farama.org/api/env) environment.
 
 ## Installation
 
@@ -17,7 +17,6 @@ git clone https://github.com/alafage/gym-platformer.git
 cd gym-platformer
 uv sync
 ```
-It will install `gym` and `pygame` libraries.
 
 ## Launch the game
 
