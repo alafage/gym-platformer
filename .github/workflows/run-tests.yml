@@ -42,7 +42,7 @@ jobs:
       - name: Check style & format
         run: |
           uv run ruff check src/gym_platformer --no-fix --statistics
-          uv run format src/gym_platformer --check
+          uv run ruff format src/gym_platformer --check
 
       - name: Test with pytest and compute coverage
         run: |
