@@ -1,2 +1,2 @@
 # flake8: noqa
-from .scores import custom_score
+from .scores import compute_reward
