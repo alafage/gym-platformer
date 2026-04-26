@@ -1,5 +1,4 @@
 import warnings
-from collections.abc import Callable
 from typing import Any, Literal
 
 import numpy as np
@@ -7,18 +6,19 @@ import pygame
 from gymnasium import Env, spaces
 
 from gym_platformer.core import Configuration, Map, Player
-from gym_platformer.utils import custom_score
+from gym_platformer.utils import compute_reward
 
 
 class PlatformerEnv(Env):
     """PlatformerEnv entity.
 
     Args:
-        score_fct (Callable[..., float]), default=`gym_platformer.utils.custom_score`
-            The score function that will be use to compute the overall
-            score of the agent.
         ep_duration (float): The duration of the episode in number of environment updates.
             Default to 50.
+        chunk_bonus (float): Reward granted each time the agent completes a chunk.
+            Default to 1.0.
+        distance_weight (float): Scaling factor applied to the incremental
+            distance-to-end-of-chunk reward component. Default to 0.01.
 
     Description:
         Continuous platformer environment for reinforcement learning with gym
@@ -61,18 +61,21 @@ class PlatformerEnv(Env):
     def __init__(
         self,
         render_mode: Literal["human", "rgb_array"] | None = None,
-        score_fct: Callable[..., float] = custom_score,
         ep_duration: float = 50,
+        chunk_bonus: float = 1.0,
+        distance_weight: float = 0.01,
     ) -> None:
         self.cfg = Configuration()
         self.map = Map(self.cfg)
-        self.score_fct = score_fct
+        self.chunk_bonus = chunk_bonus
+        self.distance_weight = distance_weight
         self.score_val: float
         self.player: Player
         self.time_val: int
         self.ep_duration = ep_duration
         self.completion: float
-        self.last_chunk_time: int
+        self.prev_chunks_passed: int
+        self.prev_distance_to_end: float
         self.viewer: pygame.Surface
 
         image_shape = (self.cfg.SIZE_Y, self.cfg.SIZE_X, 3)
@@ -115,6 +118,19 @@ class PlatformerEnv(Env):
             "score": self.score_val,
         }
 
+    def _distance_to_next_end(self) -> float:
+        """Returns the distance in pixels to the nearest upcoming end block.
+
+        Returns 0.0 when no end block lies ahead of the player (all chunks
+        have been passed or none are yet loaded).
+        """
+        player_x = self.player.rect.x
+        end_blocks_ahead = [b for b in self.map.blocks if b.block_type == "end" and b.rect.x >= player_x]
+        if not end_blocks_ahead:
+            return 0.0
+        nearest = min(end_blocks_ahead, key=lambda b: b.rect.x)
+        return float(nearest.rect.x - player_x)
+
     def reset(
         self, seed: int | None = None, options: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -126,7 +142,8 @@ class PlatformerEnv(Env):
         self.time_val = 0
         self.score_val = 0.0
         self.completion = 0.0
-        self.last_chunk_time = 0
+        self.prev_chunks_passed = 0
+        self.prev_distance_to_end = self._distance_to_next_end()
         self.steps_beyond_done = None
 
         observation = self._get_obs()
@@ -176,31 +193,35 @@ class PlatformerEnv(Env):
         )
 
         if not done:
-            if self.completion != chunks_passed / self.map.NB_CHUNK:
-                self.last_chunk_time = self.time_val
             self.completion = chunks_passed / self.map.NB_CHUNK
-            time = 1 - (self.time_val / self.ep_duration)
-            # new score computation
-            new_score = self.score_fct(time, self.completion, self.player.rect.x)
-            # computes action reward
-            reward = new_score - self.score_val
-            # updates the score
-            self.score_val = new_score
+            curr_distance_to_end = self._distance_to_next_end()
+            reward = compute_reward(
+                chunks_newly_completed=chunks_passed - self.prev_chunks_passed,
+                prev_distance_to_end=self.prev_distance_to_end,
+                curr_distance_to_end=curr_distance_to_end,
+                chunk_bonus=self.chunk_bonus,
+                distance_weight=self.distance_weight,
+            )
+            self.score_val += reward
+            self.prev_chunks_passed = chunks_passed
+            self.prev_distance_to_end = curr_distance_to_end
 
         elif self.steps_beyond_done is None:
             # Episode just ended!
             self.steps_beyond_done = 0
 
-            if self.completion != chunks_passed / self.map.NB_CHUNK:
-                self.last_chunk_time = self.time_val
             self.completion = chunks_passed / self.map.NB_CHUNK
-            time = 1 - (self.last_chunk_time / self.ep_duration)
-            # new score computation
-            new_score = self.score_fct(time, self.completion, self.player.rect.x)
-            # computes action reward
-            reward = new_score - self.score_val
-            # updates the score
-            self.score_val = new_score
+            curr_distance_to_end = self._distance_to_next_end()
+            reward = compute_reward(
+                chunks_newly_completed=chunks_passed - self.prev_chunks_passed,
+                prev_distance_to_end=self.prev_distance_to_end,
+                curr_distance_to_end=curr_distance_to_end,
+                chunk_bonus=self.chunk_bonus,
+                distance_weight=self.distance_weight,
+            )
+            self.score_val += reward
+            self.prev_chunks_passed = chunks_passed
+            self.prev_distance_to_end = curr_distance_to_end
         else:
             if self.steps_beyond_done == 0:
                 warnings.warn(
