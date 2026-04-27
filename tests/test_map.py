@@ -67,9 +67,8 @@ def test_level_generation() -> None:
     # Geometry: init_chunk last block at x=32, SIZE_X=720.
     # Each chunk_1 extends by 12*16=192 px; takes 4 loads to exceed SIZE_X.
     cfg = Configuration(deterministic=True)
-    map_obj = Map(cfg)
+    map_obj = Map(cfg, num_chunks=3)
     map_obj.reset()
-    assert map_obj.level_generation()
     assert map_obj.level_generation()
     assert map_obj.level_generation()
     assert map_obj.level_generation()
