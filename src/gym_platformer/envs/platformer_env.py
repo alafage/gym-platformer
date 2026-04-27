@@ -19,6 +19,8 @@ class PlatformerEnv(Env):
             Default to 1.0.
         distance_weight (float): Scaling factor applied to the incremental
             distance-to-end-of-chunk reward component. Default to 0.01.
+        truncation_penalty (float): Penalty added when an episode ends due to
+            truncation. Default to -1.0.
 
     Description:
         Continuous platformer environment for reinforcement learning with gym
@@ -56,19 +58,22 @@ class PlatformerEnv(Env):
         5       Does nothing
     """
 
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 20}
 
     def __init__(
         self,
         render_mode: Literal["human", "rgb_array"] | None = None,
         ep_duration: float = 50,
-        chunk_bonus: float = 1.0,
+        chunk_bonus: float = 10.0,
         distance_weight: float = 0.01,
+        truncation_penalty: float = -1.0,
+        deterministic: bool = False,
     ) -> None:
-        self.cfg = Configuration()
-        self.map = Map(self.cfg)
+        self.cfg = Configuration(deterministic=deterministic)
+        self.map = Map(self.cfg, num_chunks=2)
         self.chunk_bonus = chunk_bonus
         self.distance_weight = distance_weight
+        self.truncation_penalty = truncation_penalty
         self.score_val: float
         self.player: Player
         self.time_val: int
@@ -125,7 +130,9 @@ class PlatformerEnv(Env):
         have been passed or none are yet loaded).
         """
         player_x = self.player.rect.x
-        end_blocks_ahead = [b for b in self.map.blocks if b.block_type == "end" and b.rect.x >= player_x]
+        end_blocks_ahead = [
+            b for b in self.map.blocks if b.block_type == "end" and b.rect.x >= player_x
+        ]
         if not end_blocks_ahead:
             return 0.0
         nearest = min(end_blocks_ahead, key=lambda b: b.rect.x)
@@ -137,7 +144,6 @@ class PlatformerEnv(Env):
         """Resets the state of the environment."""
         super().reset(seed=seed)
         self.map.reset()
-        self.map.load_chunk("init", self.cfg.START_X)
         self.player = Player(self.cfg)
         self.time_val = 0
         self.score_val = 0.0
@@ -177,23 +183,24 @@ class PlatformerEnv(Env):
         # update time
         self.time_val += 1
         # get number of chunk passed
-        # FIXME: not efficient but works for that list length.
         chunks_passed = 0
-        for block in self.map.blocks:
-            if block.block_type == "end" and block.rect.x < self.player.rect.x:
+        for block in self.map.end_blocks:
+            if block.rect.x < self.player.rect.x:
                 chunks_passed += 1
 
         observation = self._get_obs()
         info = self._get_info()
 
-        done = (
+        completed = chunks_passed >= self.map.num_chunks
+        truncated = (
             self.time_val >= self.ep_duration
-            or chunks_passed >= self.map.NB_CHUNK
             or self.observation_space.contains(observation) is False
         )
 
+        done = completed or truncated
+
         if not done:
-            self.completion = chunks_passed / self.map.NB_CHUNK
+            self.completion = chunks_passed / self.map.num_chunks
             curr_distance_to_end = self._distance_to_next_end()
             reward = compute_reward(
                 chunks_newly_completed=chunks_passed - self.prev_chunks_passed,
@@ -210,7 +217,7 @@ class PlatformerEnv(Env):
             # Episode just ended!
             self.steps_beyond_done = 0
 
-            self.completion = chunks_passed / self.map.NB_CHUNK
+            self.completion = chunks_passed / self.map.num_chunks
             curr_distance_to_end = self._distance_to_next_end()
             reward = compute_reward(
                 chunks_newly_completed=chunks_passed - self.prev_chunks_passed,
@@ -219,6 +226,8 @@ class PlatformerEnv(Env):
                 chunk_bonus=self.chunk_bonus,
                 distance_weight=self.distance_weight,
             )
+            if truncated:
+                reward += self.truncation_penalty
             self.score_val += reward
             self.prev_chunks_passed = chunks_passed
             self.prev_distance_to_end = curr_distance_to_end
@@ -236,7 +245,7 @@ class PlatformerEnv(Env):
         if self.render_mode == "human":
             self.render()
 
-        return observation, reward, done, False, info
+        return observation, reward, completed, truncated, info
 
     def render(self, mode: str = "human") -> np.ndarray | None:
         """Generates the environment graphical view.
