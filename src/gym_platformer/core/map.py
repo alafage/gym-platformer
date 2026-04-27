@@ -40,12 +40,10 @@ class Map:
                     f"and the items in the chunk must have th same lenght."
                 )
         # sets the x coordinate for the generation.
-        x, y = (
-            x_start,
-            (self.cfg.VISIBILITY_Y - 1) * self.cfg.CHUNK_HEIGHT * self.cfg.BLOCK_HEIGHT,
-        )
+        x = x_start
         # generation
         for column in range(len(chunk[0])):
+            y = (self.cfg.VISIBILITY_Y - 1) * self.cfg.CHUNK_HEIGHT * self.cfg.BLOCK_HEIGHT
             for row in range(len(chunk)):
                 if chunk[row][column] == "W":
                     self.blocks.append(Block(x, y, self.cfg))
@@ -55,7 +53,6 @@ class Map:
 
                 y += self.cfg.BLOCK_HEIGHT
             x += self.cfg.BLOCK_WIDTH
-            y = (self.cfg.VISIBILITY_Y - 1) * self.cfg.CHUNK_HEIGHT * self.cfg.BLOCK_HEIGHT
 
     def end_of_chunk(self) -> bool:
         return self.blocks[-1].rect.x < self.cfg.SIZE_X
@@ -79,6 +76,8 @@ class Map:
                         self.level_idx % len(self._available_chunks)
                     ]
                     self.load_chunk(next_chunk_key, x_start)
+
+                self.level_idx += 1
                 return True
 
         return False
