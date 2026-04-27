@@ -1,37 +1,24 @@
 import random
 
 from .block import Block
-from .chunks import chunks
+from .chunks import chunks, init_chunk
 from .config import Configuration
 
 
 class Map:
-    def __init__(self, cfg: Configuration) -> None:
+    _available_chunks = list(chunks.keys())
+
+    def __init__(self, cfg: Configuration, num_chunks: int = 1) -> None:
         self.cfg = cfg
-        self.level = [
-            "init",
-            "chunk_1",
-            "chunk_2",
-            "chunk_3",
-            "chunk_4",
-            "chunk_5",
-            "chunk_6",
-            "chunk_7",
-            "chunk_8",
-            "chunk_9",
-            "chunk_10",
-            "chunk_11",
-            "chunk_12",
-            "chunk_13",
-            "chunk_14",
-        ]
         self.blocks: list[Block] = []
-        self.level_idx: int = 1
-        self.NB_CHUNK = len(self.level)
+        self.end_blocks: list[Block] = []
+        self.level_idx: int = 0
+        self.num_chunks = num_chunks
 
     def reset(self) -> None:
         self.blocks = []
-        self.level_idx = 1
+        self.level_idx = 0
+        self.load_chunk(init_chunk, self.cfg.START_X)
 
     def valid_chunk(self, chunk: list[str]) -> bool:
         if len(chunk) == self.cfg.CHUNK_HEIGHT:
@@ -64,6 +51,7 @@ class Map:
                     self.blocks.append(Block(x, y, self.cfg))
                 elif chunk[row][column] == "E":
                     self.blocks.append(Block(x, y, self.cfg, block_type="end"))
+                    self.end_blocks.append(self.blocks[-1])
 
                 y += self.cfg.BLOCK_HEIGHT
             x += self.cfg.BLOCK_WIDTH
@@ -78,19 +66,19 @@ class Map:
             # getting the x coordinate from where to start the generation
             x_start = self.blocks[-1].rect.x + self.cfg.BLOCK_WIDTH
 
-            # random generation
-            if self.cfg.RANDOM_GEN:
-                # next chunk is chosen randomly
-                next_chunk_key = random.choice(list(chunks.keys()))  # noqa: S311
-                self.load_chunk(next_chunk_key, x_start)
-                return True
-            # sequential generation
-            if self.level_idx < len(self.level):
-                # selects the next chunk to be loaded in the chunk list
-                next_chunk_key = self.level[self.level_idx]
-                self.load_chunk(next_chunk_key, x_start)
-                # increments the level index
-                self.level_idx += 1
+            if self.level_idx < self.num_chunks:
+                # random generation
+                if self.cfg.RANDOM_GEN:
+                    # next chunk is chosen randomly
+                    next_chunk_key = random.choice(self._available_chunks)  # noqa: S311
+                    self.load_chunk(next_chunk_key, x_start)
+                # sequential generation
+                else:
+                    # selects the next chunk to be loaded in the chunk list
+                    next_chunk_key = self._available_chunks[
+                        self.level_idx % len(self._available_chunks)
+                    ]
+                    self.load_chunk(next_chunk_key, x_start)
                 return True
 
         return False

@@ -2,18 +2,21 @@ from pygame.locals import K_LEFT, K_RIGHT, K_d, K_q, K_z
 
 
 class Configuration:
-    def __init__(self, proportion: float = 1.0, chunk_height: int = 16) -> None:
+    def __init__(
+        self, proportion: float = 1.0, chunk_height: int = 16, deterministic: bool = False
+    ) -> None:
         """Configuration class object.
 
         Args:
             proportion (float, optional): _description_. Defaults to 1.0.
             chunk_height (int, optional): _description_. Defaults to 16.
+            deterministic (bool, optional): _description_. Defaults to False.
         """
         # folder for run's data files
         self.DATA_FOLDER: str = "data"
         self.DATA_FILE: str = "data"
         # toggles random generation
-        self.RANDOM_GEN = False
+        self.RANDOM_GEN = not deterministic
         # disables losing, for dev/testing purposes
         self.CAN_LOSE = True
 
